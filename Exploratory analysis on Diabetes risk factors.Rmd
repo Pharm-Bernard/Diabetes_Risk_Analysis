@@ -1,0 +1,651 @@
+---
+title: "Exploratory Analysis on Diabetes Risk Factors"
+author: "Bernard"
+date: "8/20/2022"
+output:
+  html_document:
+    highlight: tango
+    number_sections: yes
+    theme: united
+    toc: yes
+    toc_depth: 4 
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+    number_sections: yes
+---
+
+## **INTRODUCTION**
+
+
+Diabetes is a chronic disease that occurs either when the pancreas does not produce enough insulin or when the body cannot effectively use the insulin it produces. Insulin is a hormone that regulates blood sugar. Hyperglycaemia, or raised blood sugar, is a common effect of uncontrolled diabetes and over time leads to serious damage to many of the body's systems, especially the nerves and blood vessels. The most common is type 2 diabetes, usually in adults, which occurs when the body becomes resistant to insulin or doesn't make enough insulin. In the past three decades the prevalence of type 2 diabetes has risen dramatically in countries of all income levels. Type 1 diabetes, once known as juvenile diabetes or insulin-dependent diabetes, is a chronic condition in which the pancreas produces little or no insulin by itself. For people living with diabetes, access to affordable treatment, including insulin, is critical to their survival. There is a globally agreed target to halt the rise in diabetes and obesity by 2025.
+
+### Epidemiology:
+
+The number of people with diabetes rose from 108 million in 1980 to 422 million in 2014. Prevalence has been rising more rapidly in low- and middle-income countries than in high-income countries. Between 2000 and 2016, there was a 5% increase in premature mortality rates (i.e. before the age of 70) from diabetes. In high-income countries the premature mortality rate due to diabetes decreased from 2000 to 2010 but then increased in 2010-2016. In lower-middle-income countries, the premature mortality rate due to diabetes increased across both periods. In 2019, diabetes was the ninth leading cause of death with an estimated 1.5 million deaths directly caused by diabetes. A healthy diet, regular physical activity, maintaining a normal body weight and avoiding tobacco use are ways to prevent or delay the onset of type 2 diabetes. Diabetes can be treated and its consequences avoided or delayed with diet, physical activity, medication and regular screening and treatment for complications.
+
+
+### Health Impact:
+
+
+Over time, diabetes can damage the heart, blood vessels, eyes, kidneys, and nerves.
+  
+* Adults with diabetes have a two- to three-fold increased risk of heart attacks and strokes.  
+* Combined with reduced blood flow, neuropathy (nerve damage) in the feet increases the chance of foot ulcers, infection and eventual need for limb amputation.  
+* Diabetic retinopathy is an important cause of blindness, and occurs as a result of long-term accumulated damage to the small blood vessels in the retina. Close to 1 million people are blind due to diabetes.  
+* Diabetes is among the leading causes of kidney failure.
+
+Who gets diabetes? What are the risk factors?
+Factors that increase your risk differ depending on the type of diabetes you ultimately develop.
+
+
+### Risk Factors for Diabetes:  
+
+* Family history (parent or sibling).  
+* Race: African,  African-American, Hispanic, Native American or Asian-American.  
+* Having overweight/obesity.  
+* Having high blood pressure.  
+* Injury to the pancreas (such as by infection, tumor, surgery or accident).  
+* Physical stress (such as surgery or illness).  
+* Having low HDL cholesterol (the “good” cholesterol) and high triglyceride level.  
+* Being physically inactive.  
+* Age: older than 25 years.  
+* Having gestational diabetes or giving birth to a baby weighing more than 9 pounds.  
+* Having polycystic ovary syndrome.  
+* Having a history of heart disease or stroke.  
+* Being a smoker.  
+
+
+
+## **ANALYSIS**
+
+Over 200,000 individuals were surveyed and asked 22 questions about their medical history, healthcare status, social status and lifestyle. 
+The dataset would be analysed for patterns, summarised using visuals and tables, the target variable **Diabetes_binary:** presence of diabetes and 21 other feature variables.  
+
+
+### Loading Libraries
+```{r setup, include=TRUE, results='hide'}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, 
+                      message= FALSE, fig.show = TRUE, fig.align = "centre" )
+library(tidyverse)
+library(knitr)
+library(corrplot)
+library(latexpdf)
+```
+
+### Loading dataset   
+```{r dataset, results='hide', include=TRUE}
+df1 <- read_csv("diabetes_binary_health_indicators_BRFSS2015.csv")
+```
+
+### Variables  
+```{r variables}
+colnames(df1)
+```
+
+* Diabetes_binary: outcome variable: presence of diabetes 0 = no diabetes; 1 = diabetes  
+* HighBP: presence of High Blood pressure: 0 = no High Blood pressure; 1 = High Blood pressure  
+* HighChol: presence of High Cholesterol: 0 = no high Cholesterol; 1 = High Cholesterol  
+* CholCheck: Cholesterol check: 0 = no cholesterol check in 5 years; 1 = yes cholesterol check in 5 years.  
+* BMI: Body Mass Index (kg/m2)  
+* Smoker: has the individual smoked at least 100 cigarettes in their entire life: 0 = no, 1 = yes.  
+* HeartDiseasesorAttack: history of heart attack and myorcaridal infarction: 0 = no, 1 = yes.  
+* Stroke: history of stroke: 0 = no, 1 = yes.  
+* Fruits: consumes fruit 1 or more times a day: 0 = no, 1 = yes.  
+* Veggies: consumes vegetabls 1 or more times a day: 0 = no, 1 = yes.  
+* Sex: 0 = female, 1 = male.  
+* Age: 
+* PhysActivity: any physical activity in the past 30 days not including job: 0 = no, 1 = yes.   
+* HvyAlcoholConsump: Heavy drinkers (adult men having more than 14 drinks per week and adult women having more than 7 drinks per week): 0 = no, 1 = yes.  
+* AnyHealthcare: does the individual have any health care insurance, prepaid plans, 0 = no, 1 = yes.  
+* NoDocbcCost: was there a time the individual could not afford to see in the past 12 months: 0 = no, 1=yes.  
+* GenHlth: Would you say that in general your health is: scale 1-5 1 = excellent, 2 = very good,  3 = good, 4 = fair,  5 = poor.  
+* MentHlth: mental health rating: Now thinking about your mental health, which includes stress, depression, and problems with emotions, how would you rate your mental health.  
+* PhyHlth: physical health rating: Now thinking about your physical health, which includes physical illness and injury, for how many days during the past 30 days was your physical health not good? scale 1-30 days.   
+* DiffWalk: Do you have serious difficulty walking or climbing stairs? 0 = no 1 = yes.  
+* Age: 13-level age category (_AGEG5YR see codebook) 1 = 18-24 9 = 60-64 13 = 80 or older.
+* Education: Education level scale 1-6 1 = Never attended school or only kindergarten 2 = Grades 1 through 8 (Elementary) 3 = Grades 9 through 11 (Some high school) 4 = Grade 12 or GED (High school graduate) 5 = College 1 year to 3 years (Some college or technical school) 6 = College 4 years or more (College graduate).  
+* Income: Income scale (INCOME2 see codebook) scale 1-8 1 = less than $10,000, 5 = less than $35,000 8 = $75,000 or more.  
+
+
+
+*How many entries are available for analysis?*  
+```{r}
+dim(df1)
+```
+
+
+
+*Are there duplicate rows in the survey?*  
+```{r}
+dim(df1[duplicated(df1), ]) # duplicated rows
+
+diabetes <- df1[!duplicated(df1), ]   # removes the duplicated rows/ entries
+
+dim(diabetes)
+
+diabetes2 <- diabetes # duplicate the working data set
+
+```
+
+### Exploratory Data analysis
+
+
+```{r}
+glimpse(diabetes)
+```
+
+#### Correlation  
+```{r Correlation}
+
+correlation <- cor(diabetes, use= "everything",  method = "pearson")
+
+corrplot(corr = correlation, method= "color",  type= "upper", order= "FPC")
+
+
+```
+
+
+
+```{r correlation}
+outcome_corr <- cor(diabetes, use = "everything", method = "pearson")[, "Diabetes_binary"]
+
+outcome <- rownames_to_column(as.data.frame(outcome_corr), var = "variable")
+outcome <- outcome %>% filter(variable!= "Diabetes_binary")
+```
+
+
+
+```{r}
+ggplot(data= outcome)+
+ geom_bar(aes(y=outcome_corr, x= variable), fill="lightblue", stat="identity")+
+  labs(x= "Variable", y = "Correlation", title= "Correlation with Outcome variable" )+
+  theme(axis.text.x = element_text(angle=90), 
+        rect = element_blank(), 
+        axis.ticks.x = element_blank())
+
+```
+
+Although the correlation of the feature variables with the outcome variable does not appear to largely significant, some noteworthy positive correlations involves Age, BMI, Difficulty walking, General health, Physical health score, History of stroke, heart disease, high cholesterol levels and high blood pressure; the negative correlations involves Income, Education level and Physical activities. 
+
+*Convert the variables to factors*
+```{r}
+diabetes$Diabetes_binary <- factor(diabetes$Diabetes_binary, levels= c(0, 1), 
+                                      labels=c("Non-diabetic", "Diabetic"))
+
+diabetes$HighBP <- factor(diabetes$HighBP, levels = c(0, 1), 
+                          labels= c("non-highBP", "HighBP"))
+
+diabetes$HighChol <- factor(diabetes$HighChol, levels = c(0, 1), 
+                            labels= c("non-HighChol", "highChol"))
+
+diabetes$Smoker <- factor(diabetes$Smoker, levels = c(0, 1), 
+                          labels= c("nonSmoker", "Smoker"))
+
+diabetes$Stroke <- factor(diabetes$Stroke, levels = c(0, 1), 
+                          labels= c("nostroke", "stroke"))
+
+diabetes$HeartDiseaseorAttack <- factor(diabetes$HeartDiseaseorAttack, levels = c(0, 1), 
+                          labels= c("noheartattack", "heartattack"))
+
+diabetes$CholCheck <- factor(diabetes$CholCheck , levels = c(0, 1), 
+                          labels= c("noCholCheck", "yesCholCheck"))
+
+diabetes$PhysActivity <- factor(diabetes$PhysActivity , levels = c(0, 1), 
+                                labels= c("no", "yes"))
+
+diabetes$Fruits <- factor(diabetes$Fruits , levels = c(0, 1), 
+                          labels= c("no", "yes"))
+
+diabetes$HvyAlcoholConsump <- factor(diabetes$HvyAlcoholConsump, levels = c(0, 1), 
+                                     labels= c("no", "yes"))
+
+diabetes$Veggies <- factor(diabetes$Veggies, levels = c(0, 1), 
+                           labels= c("no", "yes"))
+
+diabetes$AnyHealthcare <- factor(diabetes$AnyHealthcare, levels = c(0, 1), 
+                                 labels= c("no", "yes"))
+
+diabetes$NoDocbcCost <- factor(diabetes$NoDocbcCost, levels = c(0, 1), 
+                               labels= c("no", "yes"))
+
+diabetes$DiffWalk <- factor(diabetes$DiffWalk, levels = c(0, 1), 
+                            labels= c("no", "yes"))
+
+diabetes$Sex <- factor(diabetes$Sex, levels = c(0, 1), 
+                       labels= c("female", "male"))
+
+diabetes$Education <- as.factor(diabetes$Education)
+
+diabetes$Income <- as.factor(diabetes$Income)
+
+diabetes$Age <- as.factor(diabetes$Age)
+
+diabetes$GenHlth <- as.factor(diabetes$GenHlth)
+
+diabetes$MentHlth <- as.factor(diabetes$MentHlth)
+
+diabetes$PhysHlth <- as.factor(diabetes$PhysHlth)
+
+diabetes <- diabetes %>%mutate( BMIcat=case_when(diabetes$BMI < 19 ~ "Underweight", 
+                                                 diabetes$BMI < 25 ~ "Healthyweight", 
+                                                 diabetes$BMI < 30 ~ "Overweight", 
+                           TRUE ~ "Obese"))
+diabetes$BMIcat <- factor(diabetes$BMIcat, levels = c("Underweight", "Healthyweight", "Overweight", "Obese"))
+
+```
+
+
+```{r}
+head(diabetes, 10)
+```
+#### Outcome variable:  
+
+```{r}
+table(diabetes$Diabetes_binary)
+
+ggplot(data= diabetes)+
+  geom_bar(aes(x=Diabetes_binary, fill= Diabetes_binary,
+               y=after_stat(count/sum(count))))+
+  scale_fill_manual(values= c( "lightblue", "navy"))+
+  scale_y_continuous(labels= scales::percent)+
+  theme_minimal()+
+  theme(axis.text = element_text(size = 10, face= "bold"), 
+        axis.title.x = element_blank(), 
+        legend.position = "none")+
+  labs( y = "Proportion", 
+       title = "Distribution of diabetics in the survey")
+
+```
+
+The distribution of the outcome variable in the survey is 35,097 (15%) diabetic and 194,377 (85%) non-diabetic. 
+
+#### Relationship between Medical History and Occurrence
+
+
+*High blood pressure*
+```{r HighBP}
+table( diabetes$HighBP, diabetes$Diabetes_binary) %>% prop.table( 1) 
+ 
+ggplot(data= diabetes)+
+  geom_bar(aes(x=HighBP, fill= Diabetes_binary), position = "fill")+
+  scale_fill_manual(values= c( "lightblue", "navy"))+
+  guides(fill= guide_legend(title = "Diabetes status"))+
+  scale_y_continuous(labels= scales::percent)+
+  theme_minimal()+
+  theme(axis.text = element_text(size = 10, face= "bold"))+
+  labs(x= "Blood pressure", 
+       y = "Proportion", 
+       title = "How does Blood pressure affect diabetes occurrence?")
+  
+```
+
+There's an increased proportion of diabetes among individuals with High blood pressure compared to those with low blood pressure
+
+*High Cholesterol * 
+```{r HighChol}
+table(diabetes$HighChol, diabetes$Diabetes_binary) %>% prop.table(1)
+
+ggplot(data= diabetes)+
+  geom_bar(aes(x=HighChol, fill= Diabetes_binary),position = "fill")+
+  scale_fill_manual(values= c( "lightblue", "navy"))+
+  guides(fill= guide_legend(title = "Diabetes status"))+
+  scale_y_continuous(labels= scales::percent)+
+  theme_minimal()+
+  theme(axis.text = element_text(size = 10, face= "bold"))+
+  labs(x= "Cholesterol", 
+       y = "Proportion", 
+       title = "How does Cholesterol affect diabetes occurrence?")
+  
+
+```
+
+There's an increased proportion of diabetes among individuals with High Cholesterol levels compared to those with low cholesterol levels.
+
+
+*Stroke*
+```{r Stroke}
+table( diabetes$Stroke, diabetes$Diabetes_binary) %>% prop.table(1)
+
+ggplot(data= diabetes)+
+  geom_bar(aes(x=Stroke, fill= Diabetes_binary), position = "fill")+
+  scale_fill_manual(values= c( "lightblue", "navy"))+
+  guides(fill= guide_legend(title = "Diabetes status"))+
+  scale_y_continuous(labels= scales::percent)+
+  theme_minimal()+
+  theme(axis.text = element_text(size = 10, face= "bold"))+
+  labs(x= "Stroke", 
+       y = "Proportion", 
+       title = "How does Stroke affect diabetes occurrence?")
+```
+
+There's an increase in proportion in the occurrence of diabetes among individuals with hsitory of stroke compared to those who have never had stroke.
+
+
+*Heart disease or attack*
+```{r HeartDiseaseorAttack}
+table( diabetes$HeartDiseaseorAttack, diabetes$Diabetes_binary) %>% prop.table(1)
+
+ggplot(data= diabetes)+
+  geom_bar(aes(x=HeartDiseaseorAttack, fill= Diabetes_binary), position = "fill")+
+  scale_fill_manual(values= c( "lightblue", "navy"))+
+  guides(fill= guide_legend(title = "Diabetes status"))+
+  scale_y_continuous(labels= scales::percent)+
+  theme_minimal()+
+  theme(axis.text = element_text(size = 10, face= "bold"))+
+  labs(x= "Heart disease or attack", 
+       y = "Proportion", 
+       title = "How does Heart disease or attack affect diabetes occurrence?")
+
+```
+
+There's an increase in proportion in the occurrence of diabetes among individuals with hsitory of Heart attack or Myocardial Infarction compared to those who have never had one.
+
+*Body Mass Index*
+```{r BMIcat}
+table(diabetes$BMIcat, diabetes$Diabetes_binary) %>% prop.table(1)
+
+ggplot(data= diabetes)+
+  geom_bar(aes(x=BMIcat, fill= Diabetes_binary), position = "fill")+
+  scale_fill_manual(values= c( "lightblue", "navy"))+
+  guides(fill= guide_legend(title = "Diabetes status"))+
+  scale_y_continuous(labels= scales::percent)+
+  theme_minimal()+
+  theme(axis.text = element_text(size = 10, face= "bold"))+
+  labs(x= "BMI", 
+       y = "Proportion", 
+       title = "What role does BMI play in diabetes occurrence?")
+
+```
+
+Increasing BMI corresponds to an increase in proportion of individuals with diabetes
+
+*Cholesterol check frequency*
+```{r CholCheck}
+table(diabetes$CholCheck, diabetes$Diabetes_binary) %>% prop.table(1)
+
+ggplot(data= diabetes)+
+  geom_bar(aes(x=CholCheck, fill= Diabetes_binary), position = "fill")+
+  scale_fill_manual(values= c( "lightblue", "navy"))+
+  guides(fill= guide_legend(title = "Diabetes status"))+
+  scale_y_continuous(labels= scales::percent)+
+  theme_minimal()+
+  theme(axis.text = element_text(size = 10, face= "bold"))+
+  labs(x= "Cholesterol check", 
+       y = "Proportion", 
+       title = "How role Checking cholesterol levels have on diabetes occurrence?")
+```
+
+
+The presence of all medical history checked in the survey led to an increase in the proportion of diabetes occurence over those that didn't have.
+
+
+#### Relationship between Lifestyle and occurrence of Diabetes
+
+
+*Fruits consumption*
+```{r Fruits}
+table(diabetes$Fruits, diabetes$Diabetes_binary) %>% prop.table(1)
+ggplot(data= diabetes)+
+  geom_bar(aes(x=Fruits, fill= Diabetes_binary), position = "fill")+
+  scale_fill_manual(values= c( "lightblue", "navy"))+
+  guides(fill= guide_legend(title = "Diabetes status"))+
+  scale_y_continuous(labels= scales::percent)+
+  theme_minimal()+
+  theme(axis.text = element_text(size = 10, face= "bold"))+
+  labs(x= "Fruits consumption", 
+       y = "Proportion", 
+       title = "How does Fruits consumption affect diabetes occurrence?")
+```
+
+There is no significant difference in the proportion of diabetes occurrence among people who consume fruits once or more a day
+
+*Veggies consumption*
+```{r Veggies}
+table(diabetes$Veggies, diabetes$Diabetes_binary) %>% prop.table(1)
+
+ggplot(data= diabetes)+
+  geom_bar(aes(x=Veggies, fill= Diabetes_binary), position = "fill")+
+  scale_fill_manual(values= c( "lightblue", "navy"))+
+  guides(fill= guide_legend(title = "Diabetes status"))+
+  scale_y_continuous(labels= scales::percent)+
+  theme_minimal()+
+  theme(axis.text = element_text(size = 10, face= "bold"))+
+  labs(x= "Vegetables consumption", 
+       y = "Proportion", 
+       title = "How does Vegetable consumption affect diabetes occurrence?")
+```
+
+There is no significant difference in the proportion of diabetes occurrence among people who consume vegetables once or more a day
+
+*Heavy alcohol consumption * 
+```{r HvyAlcoholConsump}
+table(diabetes$HvyAlcoholConsump, diabetes$Diabetes_binary) %>% prop.table(1)
+ggplot(data= diabetes)+
+  geom_bar(aes(x=HvyAlcoholConsump, fill= Diabetes_binary), position = "fill")+
+  scale_fill_manual(values= c( "lightblue", "navy"))+
+  guides(fill= guide_legend(title = "Diabetes status"))+
+  scale_y_continuous(labels= scales::percent)+
+  theme_minimal()+
+  theme(axis.text = element_text(size = 10, face= "bold"))+
+  labs(x= "Heavy alcohol consumption", 
+       y = "Proportion", 
+       title = "How does Heavy alcohol  consumption affect diabetes occurrence?")
+```
+
+There seems to  be a decreased proportion of diabetic patients in heavy alcohol consumers than those that aren't.
+
+
+*Physical activity*
+```{r PhysActivity}
+table(diabetes$PhysActivity, diabetes$Diabetes_binary) %>% prop.table(1)
+
+ggplot(data= diabetes)+
+  geom_bar(aes(x=PhysActivity, fill= Diabetes_binary),position = "fill")+
+  scale_fill_manual(values= c( "lightblue", "navy"))+
+  guides(fill= guide_legend(title = "Diabetes status"))+
+  scale_y_continuous(labels= scales::percent)+
+  theme_minimal()+
+  theme(axis.text = element_text(size = 10, face= "bold"))+
+  labs(x= "Physical activity", 
+       y = "Proportion", 
+       title = "What's the significance of physical activities on diabetes occurrence?")
+```
+
+Physically active individuals showed a lower proportion of diabetes occurrence than those not as physically active. 
+
+Fruits and vegetable consumption didn't show any significant change in proportion of diabetes occurrence. Physically more acive indiduals had lesser proportion of diabetes occurence. Heavy alcohol consumption showed an unexpected decrease in proportion of diabetes.
+
+#### Relationship between Health / Healthcare and occurrence of Diabetes
+
+*Difficulty walking*
+```{r DiffWalk}
+table(diabetes$DiffWalk, diabetes$Diabetes_binary) %>% prop.table(1)
+
+ggplot(data= diabetes)+
+  geom_bar(aes(x=DiffWalk, fill= Diabetes_binary), position = "fill")+
+  scale_fill_manual(values= c( "lightblue", "navy"))+
+  guides(fill= guide_legend(title = "Diabetes status"))+
+  scale_y_continuous(labels= scales::percent)+
+  theme_minimal()+
+  theme(axis.text = element_text(size = 10, face= "bold"))+
+  labs(x= "Difficulty walking", 
+       y = "Proportion", 
+       title = "What's the relationship between difficulty walking and diabetes occurrence?")
+```
+
+More individuals with difficulty walking appear to be diabetic than those without the difficulty.
+
+*On any Healthcare plan*
+```{r AnyHealthcare}
+table(diabetes$AnyHealthcare, diabetes$Diabetes_binary) %>% prop.table(1)
+ggplot(data= diabetes)+
+  geom_bar(aes(x=AnyHealthcare, fill= Diabetes_binary), position = "fill")+
+   scale_fill_manual(values= c( "lightblue", "navy"))+
+  guides(fill= guide_legend(title = "Diabetes status"))+
+  scale_y_continuous(labels= scales::percent)+
+  theme_minimal()+
+  theme(axis.text = element_text(size = 10, face= "bold"))+
+  labs(x= "Health care", 
+       y = "Proportion", 
+       title = "What significance does a healthcare plan have on diabetes diagnosis")
+```
+
+The presence of a health care plan corresponds with an increase in positive diabetese diagnosis.
+
+*General Health*
+```{r GenHlth}
+table(diabetes$GenHlth, diabetes$Diabetes_binary) %>% prop.table(1)
+ggplot(data= diabetes)+
+  geom_bar(aes(x=GenHlth, fill= Diabetes_binary), position = "fill")+
+   scale_fill_manual(values= c( "lightblue", "navy"))+
+  guides(fill= guide_legend(title = "Diabetes status"))+
+  scale_y_continuous(labels= scales::percent)+
+  theme_minimal()+
+  theme(axis.text = element_text(size = 10, face= "bold"))+
+  labs(x= "General health", 
+       y = "Proportion", 
+       title = "How does General health score relate to diabetes diagnosis?")
+```
+
+There's a visible increase in the occurrence of diabetes in individuals who scored themselves lower in their general health status
+
+*Mental Health*  
+```{r MentHlth}
+table(diabetes$MentHlth, diabetes$Diabetes_binary) %>% prop.table(1)
+ggplot(data= diabetes)+
+  geom_bar(aes(x=MentHlth, fill= Diabetes_binary), position = "fill")+
+   scale_fill_manual(values= c( "lightblue", "navy"))+
+  guides(fill= guide_legend(title = "Diabetes status"))+
+  scale_y_continuous(labels= scales::percent)+
+  theme_minimal()+
+  theme(axis.text = element_text(size = 10, face= "bold"))+
+  labs(x= "Mental health", 
+       y = "Proportion", 
+       title = "How does Mental health score relate to diabetes diagnosis?")
+```
+
+As mental health of individuals scored lower, there was a corresponding increase in proportion of individuals diagnosed with diabetes.
+
+
+*Physical Health*
+```{r PhysHlth}
+table(diabetes$PhysHlth, diabetes$Diabetes_binary) %>% prop.table(1) 
+ggplot(data= diabetes)+
+  geom_bar(aes(x=PhysHlth, fill= Diabetes_binary), position = "fill")+
+   scale_fill_manual(values= c( "lightblue", "navy"))+
+  guides(fill= guide_legend(title = "Diabetes status"))+
+  scale_y_continuous(labels= scales::percent)+
+  theme_minimal()+
+  theme(axis.text = element_text(size = 10, face= "bold"))+
+  labs(x= "Physicaal health", 
+       y = "Proportion", 
+       title = "How does Physical health score relate to diabetes diagnosis?")
+```
+
+Individuals that spent more days with illness and injury were more likely to be diagnosed with diabetes than those with lesser days out.
+
+*Ability to afford doctor's cost*
+```{r NoDocbcCost, }
+table(diabetes$NoDocbcCost, diabetes$Diabetes_binary) %>% prop.table(1) 
+ggplot(data= diabetes)+
+  geom_bar(aes(x=NoDocbcCost, fill= Diabetes_binary), position = "fill")+
+   scale_fill_manual(values= c( "lightblue", "navy"))+
+  guides(fill= guide_legend(title = "Diabetes status"))+
+  scale_y_continuous(labels= scales::percent)+
+  theme_minimal()+
+  theme(axis.text = element_text(size = 10, face= "bold"))+
+  labs(x= "Mental health", 
+       y = "Proportion", 
+       title = "How does one's ability to afford doctor's cost relate to diabetes diagnosis?")
+
+```
+
+Ability to afford doctor's service increased the proportion of  individuals with a positive diagnosis for diabetes. 
+
+
+Better health status such as Mental health, Physical and General health showed a lower proportion of individuals with positive diabetes diagnosis, and the propotion increased as the health status got worse. Ability to afford healthcare, through healthcare plans or out of pocket fees increased the proportion of a positive diagnosis. 
+
+#### Relationship between Social status and occurrence of Diabetes
+
+*Income*
+```{r Income}
+table(diabetes$Income, diabetes$Diabetes_binary) %>% prop.table(1) 
+ggplot(data= diabetes)+
+  geom_bar(aes(x=Income, fill= Diabetes_binary), position = "fill")+
+   scale_fill_manual(values= c( "lightblue", "navy"))+
+  guides(fill= guide_legend(title = "Diabetes status"))+
+  scale_y_continuous(labels= scales::percent)+
+  theme_minimal()+
+  theme(axis.text = element_text(size = 10, face= "bold"))+
+  labs(x= "Income", 
+       y = "Proportion", 
+       title = "How does Income relate to diabetes diagnosis?")
+```
+
+Increasing income corresponds to a reduction in the proportion of diabetic cases
+
+*Age*
+```{r Age}
+table(diabetes$Age, diabetes$Diabetes_binary) %>% prop.table(1)
+
+ggplot(data= diabetes)+
+  geom_bar(aes(x=Age, fill= Diabetes_binary), position = "fill")+
+   scale_fill_manual(values= c( "lightblue", "navy"))+
+  guides(fill= guide_legend(title = "Diabetes status"))+
+  scale_y_continuous(labels= scales::percent)+
+  theme_minimal()+
+  theme(axis.text = element_text(size = 10, face= "bold"))+
+  labs(x= "Age", 
+       y = "Proportion", 
+       title = "How does age relate to diabetes diagnosis?")
+```
+
+Older individuals tend to have an increased proportion of diabetics in their age bracket than younger ones do. 
+
+*Sex*
+```{r Sex}
+table(diabetes$Sex, diabetes$Diabetes_binary) %>% prop.table(1)
+
+ggplot(data= diabetes)+
+  geom_bar(aes(x=Sex, fill= Diabetes_binary), position = "fill")+
+   scale_fill_manual(values= c( "lightblue", "navy"))+
+  guides(fill= guide_legend(title = "Diabetes status"))+
+  scale_y_continuous(labels= scales::percent)+
+  theme_minimal()+
+  theme(axis.text = element_text(size = 10, face= "bold"))+
+  labs(x= "Sex", 
+       y = "Proportion", 
+       title = "How does sex relate to diabetes diagnosis?")
+```
+
+Males had a slight increase in proportion diabetics when compared to females
+
+*Education*
+```{r Education}
+table(diabetes$Education, diabetes$Diabetes_binary) %>% prop.table(1)
+ggplot(data= diabetes)+
+  geom_bar(aes(x=Education, fill= Diabetes_binary), position = "fill")+
+   scale_fill_manual(values= c( "lightblue", "navy"))+
+  guides(fill= guide_legend(title = "Diabetes status"))+
+  scale_y_continuous(labels= scales::percent)+
+  theme_minimal()+
+  theme(axis.text = element_text(size = 10, face= "bold"))+
+  labs(x= "Education", 
+       y = "Proportion", 
+       title = "How does Education relate to diabetes diagnosis?")
+```
+
+As education levels increased, the proportion of individuals with diabetes decreased. 
+
+Increasing income and education levels corresponds to a gradual reduction in proportion of  diabetics identified in the survey. As expected increasing age corresponds to reduction in proportion of diabetics identified.
+
+## **CONCLUSION**
+
+It is important to state that correlation is not causation.   
+Diabetes has a lot of risk factors (i.e factors that increase the probability of getting a disease) these factors include lots health status, medical history of the individual, lifestyle choices, genetics and some social factors analysed in this project, so most of the variables analysed in this project would occur in tandem and shoot up the probabilty of being diabetic. Diabetes also is often a comorbidity of other diseases that occur as individuals age and heart diseases.    
+
+
+Although trends in this analysis show some patterns that corresponds to change in  the proportion of diabetics, these trends don't represents significance in predicting the outcome of a diabetic test. 
+
+
